@@ -4,15 +4,15 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 class LeadProcessingBlock1D(nn.Module):
-    def __init__(self, channels, dilation1, dilation2):
+    def __init__(self, channels, dilation):
         super().__init__()
         self.first_layer = nn.Sequential(
-            nn.Conv1d(channels, channels, 3, padding=dilation1, dilation=dilation1, bias=False),
+            nn.Conv1d(channels, channels, 3, padding=dilation, dilation=dilation, bias=False),
             nn.BatchNorm1d(channels),
             nn.ReLU(inplace=True)
         )
         self.second_layer = nn.Sequential(
-            nn.Conv1d(channels, channels, 3, padding=dilation2, dilation=dilation2, bias=False),
+            nn.Conv1d(channels, channels, 3, padding=dilation, dilation=dilation, bias=False),
             nn.BatchNorm1d(channels),
             nn.ReLU(inplace=True)
         )
