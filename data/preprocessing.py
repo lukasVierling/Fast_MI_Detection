@@ -103,7 +103,7 @@ def get_dataloaders(path, train_ratio, val_ratio,batch_size=256, preprocessed_da
         #save data
         save_path = "/content/drive/MyDrive/ptbdb/preprocessed_data.pt"
         torch.save({"ECG_data":ECG_data,"labels":labels,"ids": ids}, save_path)
-        print("Data saved at: " save_path)
+        print("Data saved at: ", save_path)
     else:
         print("Load data from given path")
         preproc = torch.load(preprocessed_data_path, weights_only=False)
