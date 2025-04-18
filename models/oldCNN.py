@@ -40,7 +40,7 @@ class CNN_2D(nn.Module):
             nn.ReLU(inplace=True)
         )
         # increase the depth with 2D conv
-        self.first_conv = nn.Sequential(nn.Conv2d(hidden_channels, hidden_channels, kernel_size=3, padding=1, bias=False),
+        self.first_conv = nn.Sequential(nn.Conv2d(num_leads, hidden_channels, kernel_size=3, padding=1, bias=False),
                                           nn.ReLU(inplace=True))
         # res blocks
         self.ResBlocks = nn.Sequential(
