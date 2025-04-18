@@ -65,7 +65,7 @@ class CNN_1D(nn.Module):
         self.last_conv = nn.Sequential(nn.Conv1d(hidden_channels, hidden_channels, kernel_size=3, padding=16, dilation=16, bias=False),
                                        nn.BatchNorm1d(hidden_channels),
                                        nn.ReLU(inplace=True))
-        self.pooling = nn.AdaptiveAvgPool2d((1))
+        self.pooling = nn.AdaptiveAvgPool1d((1))
         self.fc = nn.Linear(hidden_channels, 1)
     def forward(self, x):
         B = x.size(0)
