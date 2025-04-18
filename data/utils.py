@@ -9,7 +9,6 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from scipy.signal import iirnotch, filtfilt
 from scipy.interpolate import CubicSpline
-import pywt
 
 SAMPLING_RATE=1000 #sampling rate of the dataset hardcoded
 

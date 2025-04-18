@@ -11,9 +11,8 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from scipy.signal import iirnotch, filtfilt
 from scipy.interpolate import CubicSpline
-import pywt
 
-from utils import remove_baseline_wander, notch_filter, split_signal, preprocess_ECG
+from .utils import remove_baseline_wander, notch_filter, split_signal, preprocess_ECG
 
 def get_record_paths(path):
     records = []
@@ -91,7 +90,7 @@ def split_patients(records, train_ratio = 0.6, val_ratio = 0.1, seed=0):
 
     return split, train_ids, val_ids, test_ids
 
-def get_dataloaders(path, preprocessed_data_path, train_ratio, val_ratio, desired_leads, seed):
+def get_dataloaders(path, train_ratio, val_ratio,batch_size=256, preprocessed_data_path=None, desired_leads=['i','ii','iii','avr','avl','avf','v1','v2','v3','v4','v5','v6'], seed=0):
     records = get_record_paths(path)
     filtered_records = filter_records(records)
     splits, train_ids, val_ids, test_ids = split_patients(filtered_records, train_ratio, val_ratio, seed)
@@ -101,18 +100,24 @@ def get_dataloaders(path, preprocessed_data_path, train_ratio, val_ratio, desire
         ECG_data, labels, ids = get_dataset(filtered_records, overlap=0.5, desired_leads=desired_leads)
         ECG_data = torch.tensor(ECG_data.transpose(0,2,1), dtype=torch.float32)
         labels = torch.tensor(labels, dtype=torch.float32).unsqueeze(1)
+        #save data
+        save_path = "/content/drive/MyDrive/ptbdb/preprocessed_data.pt"
+        torch.save({"ECG_data":ECG_data,"labels":labels,"ids": ids}, save_path)
+        print("Data saved at: " save_path)
     else:
         print("Load data from given path")
-        ECG_data, labels, ids = torch.load(preprocessed_data_path, weights_only=False)
+        preproc = torch.load(preprocessed_data_path, weights_only=False)
+        ECG_data, labels, ids = preproc["ECG_data"], preproc["labels"], preproc["ids"]
+
 
     #get the dataloaders
     train_mask = np.isin(ids, list(train_ids))
-    train_loader = DataLoader(TensorDataset(ECG_data[train_mask], labels[train_mask]))
+    train_loader = DataLoader(TensorDataset(ECG_data[train_mask], labels[train_mask]),shuffle=True,batch_size=batch_size)
 
     val_mask = np.isin(ids, list(val_ids))
-    val_loader = DataLoader(TensorDataset(ECG_data[val_mask], labels[val_mask]))
+    val_loader = DataLoader(TensorDataset(ECG_data[val_mask], labels[val_mask]),batch_size=batch_size)
 
     test_mask = np.isin(ids, list(test_ids))
-    test_loader = DataLoader(TensorDataset(ECG_data[test_mask], labels[test_mask]))
+    test_loader = DataLoader(TensorDataset(ECG_data[test_mask], labels[test_mask]),batch_size=batch_size)
 
     return train_loader, val_loader, test_loader

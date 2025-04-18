@@ -26,7 +26,7 @@ class ResidualBlock2D(nn.Module):
         #skip connection
         return out + x
 
-class CNN_2d(nn.Module):
+class CNN_2D(nn.Module):
     def __init__(self,
                  num_leads= 12,
                  filters_1d= 20,
