@@ -96,16 +96,13 @@ def split_patients(records, train_ratio = 0.6, val_ratio = 0.1, seed=0, k_fold=1
         return train_folds, test_folds
 
 
-def get_dataloaders(path, train_ratio, val_ratio, k_fold=1, batch_size=256, preprocessed_data_path=None, desired_leads=['i','ii','iii','avr','avl','avf','v1','v2','v3','v4','v5','v6'], seed=0):
+def get_dataloaders(path, train_ratio, val_ratio, train_ids=None, test_ids=None, val_ids=None, batch_size=256, preprocessed_data_path=None, desired_leads=['i','ii','iii','avr','avl','avf','v1','v2','v3','v4','v5','v6'], seed=0):
     records = get_record_paths(path)
     filtered_records = filter_records(records)
-    if k_fold==1:
+    #allow to hand over predefined subsets of the data
+    if train_ids is None or test_ids is None or val_ids=None:
         train_ids, val_ids, test_ids = split_patients(filtered_records, train_ratio, val_ratio, seed)
         print(f"Patients: train: {len(train_ids)} | val: {len(val_ids)} | test: {len(test_ids)}")
-    else:
-        train_ids_list, test_ids_list = split_patients(filtered_records, train_ratio, val_ratio, seed, k_fold=k_fold)
-        #concat all the ids again
-        print(f"Patients: train: {len(train_ids_list[0])} | test: {len(test_ids_list[0])}")
     
     if preprocessed_data_path is None:
         print("No data path given -> create dataset")
@@ -120,30 +117,15 @@ def get_dataloaders(path, train_ratio, val_ratio, k_fold=1, batch_size=256, prep
         print("Load data from given path")
         preproc = torch.load(preprocessed_data_path, weights_only=False)
         ECG_data, labels, ids = preproc["ECG_data"], preproc["labels"], preproc["ids"]
-    if k_fold==1:
-        #get the dataloaders
-        train_mask = np.isin(ids, list(train_ids))
-        train_loader = DataLoader(TensorDataset(ECG_data[train_mask], labels[train_mask]),shuffle=True,batch_size=batch_size)
+    
+    #get the dataloaders
+    train_mask = np.isin(ids, list(train_ids))
+    train_loader = DataLoader(TensorDataset(ECG_data[train_mask], labels[train_mask]),shuffle=True,batch_size=batch_size)
 
-        val_mask = np.isin(ids, list(val_ids))
-        val_loader = DataLoader(TensorDataset(ECG_data[val_mask], labels[val_mask]),batch_size=batch_size)
+    val_mask = np.isin(ids, list(val_ids))
+    val_loader = DataLoader(TensorDataset(ECG_data[val_mask], labels[val_mask]),batch_size=batch_size)
 
-        test_mask = np.isin(ids, list(test_ids))
-        test_loader = DataLoader(TensorDataset(ECG_data[test_mask], labels[test_mask]),batch_size=batch_size)
+    test_mask = np.isin(ids, list(test_ids))
+    test_loader = DataLoader(TensorDataset(ECG_data[test_mask], labels[test_mask]),batch_size=batch_size)
 
-        return train_loader, val_loader, test_loader
-    else:
-        #we have k_fold 
-        train_loaders = []
-        test_loaders = []
-        for train_ids, test_ids in zip(train_ids_list, test_ids_list):
-            #get the dataloaders
-            train_mask = np.isin(ids, list(train_ids))
-            train_loader = DataLoader(TensorDataset(ECG_data[train_mask], labels[train_mask]),shuffle=True,batch_size=batch_size)
-
-            test_mask = np.isin(ids, list(test_ids))
-            test_loader = DataLoader(TensorDataset(ECG_data[test_mask], labels[test_mask]),batch_size=batch_size)
-
-            train_loaders.append(train_loader)
-            test_loaders.append(test_loader)
-        return train_loaders, test_loaders
+    return train_loader, val_loader, test_loader
