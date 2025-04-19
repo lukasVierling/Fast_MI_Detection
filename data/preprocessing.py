@@ -35,9 +35,6 @@ def filter_records(records):
         if label== healthy_label:
             healthy.append(record)
         elif label == disease_label:
-            loc=next((c.split(':',1)[1].strip() for c in cm if c.startswith('Acute infarction (localization):')),None)
-            if loc and loc.lower()=="n/a":
-                print("Found na entry")
             if id in mi_to_id:
                 mi_to_id[id].append(record)
             else:
