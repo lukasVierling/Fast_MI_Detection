@@ -100,7 +100,7 @@ def get_dataloaders(path, train_ratio, val_ratio, train_ids=None, test_ids=None,
     records = get_record_paths(path)
     filtered_records = filter_records(records)
     #allow to hand over predefined subsets of the data
-    if train_ids is None or test_ids is None or val_ids=None:
+    if train_ids is None or test_ids is None or val_ids is None:
         train_ids, val_ids, test_ids = split_patients(filtered_records, train_ratio, val_ratio, seed)
         print(f"Patients: train: {len(train_ids)} | val: {len(val_ids)} | test: {len(test_ids)}")
     
