@@ -67,8 +67,8 @@ def split_patients(records, train_ratio = 0.6, val_ratio = 0.1, seed=0, k_fold=1
     ids = sorted({os.path.basename(os.path.dirname(r)) for r in records})
 
     #get random shuffle of indices
-    range = np.random.default_rng(seed)
-    range.shuffle(ids)
+    rng = np.random.default_rng(seed)
+    rng.shuffle(ids)
     if k_fold == 1:
         n_total = len(ids)
         n_train = int(round(n_total * train_ratio))
