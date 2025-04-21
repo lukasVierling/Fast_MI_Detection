@@ -96,7 +96,7 @@ def split_patients(records, train_ratio = 0.6, val_ratio = 0.1, seed=0, k_fold=1
         return train_folds, test_folds
 
 
-def get_dataloaders(path, train_ratio, val_ratio, train_ids=None, test_ids=None, val_ids=None, batch_size=256, preprocessed_data_path=None, desired_leads=['i','ii','iii','avr','avl','avf','v1','v2','v3','v4','v5','v6'], seed=0):
+def get_dataloaders(path, train_ratio, val_ratio, train_ids=None, test_ids=None, val_ids=None, batch_size=256, preprocessed_data_path=None, save_path=None, desired_leads=['i','ii','iii','avr','avl','avf','v1','v2','v3','v4','v5','v6'], seed=0):
     records = get_record_paths(path)
     filtered_records = filter_records(records)
     #allow to hand over predefined subsets of the data
@@ -110,7 +110,8 @@ def get_dataloaders(path, train_ratio, val_ratio, train_ids=None, test_ids=None,
         ECG_data = torch.tensor(ECG_data.transpose(0,2,1), dtype=torch.float32)
         labels = torch.tensor(labels, dtype=torch.float32).unsqueeze(1)
         #save data
-        save_path = "/content/drive/MyDrive/ptbdb/preprocessed_data.pt"
+        if save_path is None:
+          save_path = "/content/drive/MyDrive/ptbdb/preprocessed_data.pt"
         torch.save({"ECG_data":ECG_data,"labels":labels,"ids": ids}, save_path)
         print("Data saved at: ", save_path)
     else:
