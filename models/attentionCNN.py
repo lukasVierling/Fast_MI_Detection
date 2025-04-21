@@ -27,7 +27,7 @@ class LeadMixingBlock(nn.Module):
         super().__init__()
         self.num_leads = num_leads
         self.filters_per_lead = filters_per_lead
-        self.attn = nn.MultiheadAttention(embed_dim = filters_per_lead, num_heads = num_heads, batch_first=True)
+        self.attn = nn.MultiheadAttention(embed_dim=filters_per_lead, num_heads=num_heads, batch_first=True)
     
     def forward(self,x):
         B,C,T = x.shape
@@ -36,7 +36,7 @@ class LeadMixingBlock(nn.Module):
         #reshape the input to get the leads  (C=FT)
         out = x.view(B, L, F, T)
 
-        # B*T attention probelms
+        #B*T attention probelms
         out = out.permute(0,3,1,2).reshape(B*T, L, F)
 
         attn_out, _ = self.attn(out, out, out)
@@ -45,22 +45,23 @@ class LeadMixingBlock(nn.Module):
         return out.reshape(B,C,T)
     
 class CNN_1D(nn.Module):
-    def __init__(self, num_leads=12, hidden_channels=64, filters_1d = 20, kernel_1d = 100, stride_1d = 50, attn_heads = 4, res_dilations = [1,2,4]):
+    def __init__(self, num_leads=12, hidden_channels=64, filters=20, kernel_size=100, stride=50, attn_heads=4, res_dilations=[1,2,4]):
         super().__init__()
         #encoder
-        hidden_channels = num_leads * filters_1d
+        hidden_channels = num_leads * filters
         self.encoder = nn.Sequential(
-            nn.Conv1d(num_leads, hidden_channels, kernel_size=kernel_1d, stride=stride_1d, groups=num_leads,bias=False),
+            nn.Conv1d(num_leads, hidden_channels, kernel_size=kernel_size, stride=stride, groups=num_leads,bias=False),
             nn.ReLU(inplace=True)
         )
         self.layers = nn.ModuleList()
+        #3 Lead Processing -> Lead Mixing Blocks
         self.LeadBlocks = nn.Sequential(
             LeadProcessingBlock1D(hidden_channels, dilation=res_dilations[0]),
-            LeadMixingBlock(num_leads, filters_1d, attn_heads),
+            LeadMixingBlock(num_leads, filters, attn_heads),
             LeadProcessingBlock1D(hidden_channels, dilation=res_dilations[1]),
-            LeadMixingBlock(num_leads, filters_1d, attn_heads),
+            LeadMixingBlock(num_leads, filters, attn_heads),
             LeadProcessingBlock1D(hidden_channels, dilation=res_dilations[2]),
-            LeadMixingBlock(num_leads, filters_1d, attn_heads),
+            LeadMixingBlock(num_leads, filters, attn_heads),
         )
         self.last_conv = nn.Sequential(nn.Conv1d(hidden_channels, hidden_channels, kernel_size=3, padding=16, dilation=16, bias=False),
                                        nn.BatchNorm1d(hidden_channels),

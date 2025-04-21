@@ -5,7 +5,9 @@ import torch.optim as optim
 '''
 Reimplementation of the model proposed in 
 Automating detection and localization of myocardialinfarction using
-shallow and nd-to-end deep neural networks.
+shallow and end-to-end deep neural networks.
+link:https://www.sciencedirect.com/science/article/pii/S1568494620303239
+Authors: Jafarian et al.
 '''
 class ResidualBlock2D(nn.Module):
     def __init__(self, channels, dilation1, dilation2):
@@ -27,22 +29,18 @@ class ResidualBlock2D(nn.Module):
         return out + x
 
 class CNN_2D(nn.Module):
-    def __init__(self,
-                 num_leads= 12,
-                 filters_1d= 20,
-                 kernel_1d= 100,
-                 stride_1d= 50):
+    def __init__(self, num_leads=12, filters=20, kernel_size=100, stride=50):
         super().__init__()
-        hidden_channels = num_leads * filters_1d
+        hidden_channels = num_leads * filters
         #encoder
         self.encoder = nn.Sequential(
-            nn.Conv1d(num_leads, hidden_channels, kernel_size=kernel_1d, stride=stride_1d, groups=num_leads,bias=False),
+            nn.Conv1d(num_leads, hidden_channels, kernel_size=kernel_size, stride=stride, groups=num_leads,bias=False),
             nn.ReLU(inplace=True)
         )
-        # increase the depth with 2D conv
+        #increase the depth with 2D conv
         self.first_conv = nn.Sequential(nn.Conv2d(num_leads, hidden_channels, kernel_size=3, padding=1, bias=False),
                                           nn.ReLU(inplace=True))
-        # res blocks
+        #res blocks
         self.ResBlocks = nn.Sequential(
             ResidualBlock2D(hidden_channels, dilation1=1, dilation2=1),
             ResidualBlock2D(hidden_channels, dilation1=2, dilation2=2),
@@ -62,8 +60,8 @@ class CNN_2D(nn.Module):
         _, C, T = out.shape
 
         #reshape to fit into the 2D conv
-        Fdim = C//x.size(1)
-        out = out.view(B, x.size(1), Fdim, T).permute(0,1,3,2)
+        filter_size = C//x.size(1)
+        out = out.view(B, x.size(1), filter_size, T).permute(0,1,3,2)
 
         out = self.first_conv(out)
 
