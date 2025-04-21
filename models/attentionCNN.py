@@ -30,19 +30,19 @@ class LeadMixingBlock(nn.Module):
         self.attn = nn.MultiheadAttention(embed_dim=filters_per_lead, num_heads=num_heads, batch_first=True)
     
     def forward(self,x):
-        B,C,T = x.shape
-        L = self.num_leads
-        F = self.filters_per_lead
-        #reshape the input to get the leads  (C=FT)
-        out = x.view(B, L, F, T)
+        batch_size, channels, time = x.shape
+        num_leads = self.num_leads
+        filter_size = self.filters_per_lead
+        #reshape the input to get the leads  (channel size = num_leads * filter_size)
+        out = x.view(batch_size, num_leads, filter_size, time)
 
         #B*T attention probelms
-        out = out.permute(0,3,1,2).reshape(B*T, L, F)
+        out = out.permute(0,3,1,2).reshape(batch_size*time, num_leads, filter_size)
 
         attn_out, _ = self.attn(out, out, out)
-        out = attn_out.reshape(B,T,L,F).permute(0,2,3,1)
+        out = attn_out.reshape(batch_size,time,num_leads,filter_size).permute(0,2,3,1)
 
-        return out.reshape(B,C,T)
+        return out.reshape(batch_size,channels,time)
     
 class CNN_1D(nn.Module):
     def __init__(self, num_leads=12, hidden_channels=64, filters=20, kernel_size=100, stride=50, attn_heads=4, res_dilations=[1,2,4]):
@@ -69,13 +69,13 @@ class CNN_1D(nn.Module):
         self.pooling = nn.AdaptiveAvgPool1d((1))
         self.fc = nn.Linear(hidden_channels, 1)
     def forward(self, x):
-        B = x.size(0)
+        batch_size = x.size(0)
         out = self.encoder(x)
         out = self.LeadBlocks(out)
         out = self.last_conv(out)
         out = self.pooling(out)
         #flatten 
-        out = out.view(B,-1)
+        out = out.view(batch_size,-1)
         out = self.fc(out)
         return out
 

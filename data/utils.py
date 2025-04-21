@@ -45,10 +45,14 @@ def split_signal(data, window_size=5, overlap=0.5):
 
 def preprocess_ECG(ECG):
     preprocessed_leads = []
+    #get number of samples
     num_samples = ECG.shape[1]
     for i in range(num_samples):
+        #get one lead
         lead = ECG[:,i]
+        #1) filter the lead
         filtered = notch_filter(lead)
+        #2) detrend the lead
         detrended = remove_baseline_wander(filtered)
         preprocessed_leads.append(detrended)
     return np.stack(preprocessed_leads, axis=1)

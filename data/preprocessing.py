@@ -17,12 +17,15 @@ def get_record_paths(path):
 def filter_records(records):
     healthy = []
     mi_to_id = {}
+    # we only differentiate between MI and no MI
     healthy_label = "Healthy control"
     disease_label = "Myocardial infarction"
     for record in records:
         header = wfdb.rdheader(record)
         comment = header.comments
+        # get the id from the record name
         id = os.path.basename(os.path.dirname(record))
+        # extract the class from the comment, usually: ... Reason for admission: <label> 
         label = next((line.split(":", 1)[1].strip() for line in comment if line.startswith("Reason for admission:")), None)
         if label== healthy_label:
             healthy.append(record)
@@ -47,6 +50,7 @@ def get_dataset(records, overlap=0.5, desired_leads=['i','ii','iii','avr','avl',
         idxs = [leads.index(l) for l in desired_leads]
         preprocessed_data = preprocess_ECG(ecg[:, idxs])
         id = os.path.basename(os.path.dirname(record))
+        #easier label determination because the records are already filtered for MI or no MI
         label = int(any("Myocardial infarction" in line for line in meta_data["comments"]))
         for window in split_signal(preprocessed_data, overlap=overlap):
             ECG_data.append(window)
@@ -58,9 +62,10 @@ def split_patients(records, train_ratio = 0.6, val_ratio = 0.1, seed=0, k_fold=1
 
     ids = sorted({os.path.basename(os.path.dirname(r)) for r in records})
 
-    #get random shuffle of indices
+    #get random shuffle of indices (seeded for deterministic beh.)
     rng = np.random.default_rng(seed)
     rng.shuffle(ids)
+    # if k_fold == 1 then we just do normal train test val split
     if k_fold == 1:
         n_total = len(ids)
         n_train = int(round(n_total * train_ratio))
@@ -81,6 +86,7 @@ def split_patients(records, train_ratio = 0.6, val_ratio = 0.1, seed=0, k_fold=1
         n_test = n_total//k_fold # if k_fold 5 then n/5 is for test
 
         for k in range(k_fold):
+            #shift the test window through the data
             start = n_test * k
             end = n_test * (k+1) if k < k_fold-1 else n_total
             train_folds.append(ids[:start]+ids[end:])

@@ -54,14 +54,14 @@ class CNN_2D(nn.Module):
         self.fc = nn.Linear(hidden_channels, 1)
 
     def forward(self,x):
-        B = x.size(0)
+        batch_size = x.size(0)
 
         out = self.encoder(x)
-        _, C, T = out.shape
+        _, channels, time = out.shape
 
-        #reshape to fit into the 2D conv
-        filter_size = C//x.size(1)
-        out = out.view(B, x.size(1), filter_size, T).permute(0,1,3,2)
+        #reshape to fit into the 2D Conv
+        filter_size = channels//x.size(1)
+        out = out.view(batch_size, x.size(1), filter_size, time).permute(0,1,3,2)
 
         out = self.first_conv(out)
 
@@ -74,7 +74,7 @@ class CNN_2D(nn.Module):
         #pooling and  fc
         out = self.pooling(out)
         #flatten
-        out = out.view(B, -1)
+        out = out.view(batch_size, -1)
         out = self.fc(out)
 
         return out
