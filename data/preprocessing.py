@@ -1,17 +1,9 @@
 import os
 import torch
 import numpy as np
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from torch.utils.data import DataLoader, TensorDataset
 import wfdb
-import torch.nn as nn
-import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader, TensorDataset
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
-from scipy.signal import iirnotch, filtfilt
-from scipy.interpolate import CubicSpline
-
 from .utils import remove_baseline_wander, notch_filter, split_signal, preprocess_ECG
 
 def get_record_paths(path):
@@ -73,7 +65,7 @@ def split_patients(records, train_ratio = 0.6, val_ratio = 0.1, seed=0, k_fold=1
         n_total = len(ids)
         n_train = int(round(n_total * train_ratio))
         n_val = int(round(n_total * val_ratio))
-        
+
         train_ids = ids[:n_train]
         val_ids = ids[n_train:n_train+n_val]
         test_ids = ids[n_train+n_val : ]

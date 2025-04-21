@@ -1,12 +1,5 @@
 import os
 import numpy as np
-import wfdb
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader, TensorDataset
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
 from scipy.signal import iirnotch, filtfilt
 from scipy.interpolate import CubicSpline
 
