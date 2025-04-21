@@ -73,7 +73,7 @@ def split_patients(records, train_ratio = 0.6, val_ratio = 0.1, seed=0, k_fold=1
         n_total = len(ids)
         n_train = int(round(n_total * train_ratio))
         n_val = int(round(n_total * val_ratio))
-
+        
         train_ids = ids[:n_train]
         val_ids = ids[n_train:n_train+n_val]
         test_ids = ids[n_train+n_val : ]
